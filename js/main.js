@@ -5,198 +5,222 @@
   _initContextMenu();
   _initCanvasClick();
 
-  var logoInp=document.getElementById('logoFileInput');
-  if(logoInp)logoInp.onchange=uploadLogo;
-  var bgInp=document.getElementById('bgFileInput');
-  if(bgInp)bgInp.onchange=uploadBg;
+  document.getElementById('logoFileInput').onchange = uploadLogo;
+  document.getElementById('bgFileInput').onchange   = uploadBg;
 
   addSlide('intro');
   addSlide('step');
   addSlide('cta');
-  activeSlideIdx=0;
+  activeSlideIdx = 0;
   pushHistory();
   updateHistoryUI();
+  document.getElementById('m-snap').classList.add('active');
 
-  var snapBtn=document.getElementById('m-snap');
-  if(snapBtn)snapBtn.classList.add('active');
-
-  setTimeout(zoomFit,100);
-
-  window.addEventListener('resize',function(){
+  setTimeout(zoomFit, 120);
+  window.addEventListener('resize', function(){
     zoomFit();
-    if(window.innerWidth>=768)_resetMobileState();
+    if(window.innerWidth >= 768) _resetMobileState();
   });
-  window.addEventListener('orientationchange',function(){setTimeout(zoomFit,350);});
+  window.addEventListener('orientationchange', function(){ setTimeout(zoomFit,400); });
 
-  console.log('%cA2G v2.5 ✅','color:#7CFF7C;font-weight:bold;font-size:14px;');
+  /* ── CRITICAL: stop panel touches reaching overlay ── */
+  ['leftPanel','propPanel'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('touchstart', function(e){ e.stopPropagation(); }, {passive:true});
+    el.addEventListener('click',      function(e){ e.stopPropagation(); });
+  });
+
+  console.log('%cA2G v2.6 ✅','color:#7CFF7C;font-weight:bold;font-size:14px;');
 })();
 
+/* ─── Reset on desktop ─── */
 function _resetMobileState(){
-  document.getElementById('leftPanel').classList.remove('open');
-  document.getElementById('propPanel').classList.remove('open');
-  document.getElementById('drawerOverlay').classList.remove('open');
-  window._currentMobileTab=null;
+  _lp().classList.remove('open');
+  _pp().classList.remove('open');
+  _ov().classList.remove('open');
+  window._mTab = null;
+  _clearMtBtns();
 }
 
-/* ── Toast ── */
+/* ─── Helpers ─── */
+function _lp(){ return document.getElementById('leftPanel'); }
+function _pp(){ return document.getElementById('propPanel'); }
+function _ov(){ return document.getElementById('drawerOverlay'); }
+
+/* ─── Toast ─── */
 function showToast(msg){
-  var t=document.getElementById('a2g-toast');
-  if(!t){t=document.createElement('div');t.id='a2g-toast';document.body.appendChild(t);}
-  t.textContent=msg;
-  t.style.opacity='1';
-  t.style.transform='translateX(-50%) translateY(0)';
-  clearTimeout(t._timer);
-  t._timer=setTimeout(function(){
-    t.style.opacity='0';
-    t.style.transform='translateX(-50%) translateY(12px)';
-  },2200);
+  var t = document.getElementById('a2g-toast');
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(t._tmr);
+  t._tmr = setTimeout(function(){
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(12px)';
+  }, 2200);
 }
 
-/* ── Brand swatches ── */
-var _swatches=[];
+/* ─── Brand swatches ─── */
+var _swatches = [];
 function _initSwatches(){
-  try{_swatches=JSON.parse(localStorage.getItem('a2g-sw')||'null')||['#7CFF7C','#FF6B6B','#FFD93D','#4D96FF','#ffffff'];}
-  catch(e){_swatches=['#7CFF7C','#FF6B6B','#FFD93D','#4D96FF','#ffffff'];}
+  try{ _swatches = JSON.parse(localStorage.getItem('a2g-sw')) || _defaultSw(); }
+  catch(e){ _swatches = _defaultSw(); }
   _renderSwatches();
 }
+function _defaultSw(){ return ['#7CFF7C','#FF6B6B','#FFD93D','#4D96FF','#ffffff']; }
 function _renderSwatches(){
-  var c=document.getElementById('brandSwatches');if(!c)return;
-  c.innerHTML='';
-  _swatches.forEach(function(color,i){
-    var sw=document.createElement('div');sw.title=color;
-    sw.style.cssText='width:32px;height:32px;border-radius:7px;background:'+color+';cursor:pointer;border:2px solid rgba(255,255,255,.1);flex-shrink:0;transition:transform .15s;';
-    sw.onmouseenter=function(){sw.style.transform='scale(1.15)';};
-    sw.onmouseleave=function(){sw.style.transform='scale(1)';};
-    sw.onclick=function(e){
+  var c = document.getElementById('brandSwatches'); if(!c) return;
+  c.innerHTML = '';
+  _swatches.forEach(function(color, i){
+    var sw = document.createElement('div');
+    sw.style.cssText = 'width:32px;height:32px;border-radius:7px;background:'+color+';cursor:pointer;border:2px solid rgba(255,255,255,.12);flex-shrink:0;';
+    sw.title = color;
+    sw.addEventListener('click', function(e){
       e.stopPropagation();
-      var ac=document.getElementById('c-ac');   if(ac)  ac.value=color;
-      var acH=document.getElementById('c-acH'); if(acH) acH.value=color;
-      updateColors();showToast('🎨 Accent → '+color);
-    };
-    sw.oncontextmenu=function(e){
-      e.preventDefault();e.stopPropagation();
-      _swatches.splice(i,1);_saveSwatches();_renderSwatches();showToast('🗑 Removed');
-    };
+      document.getElementById('c-ac').value  = color;
+      document.getElementById('c-acH').value = color;
+      updateColors(); showToast('🎨 '+color);
+    });
+    sw.addEventListener('contextmenu', function(e){
+      e.preventDefault(); e.stopPropagation();
+      _swatches.splice(i,1); _saveSwatches(); _renderSwatches(); showToast('🗑 Removed');
+    });
     c.appendChild(sw);
   });
 }
 function addSwatch(){
-  var inp=document.getElementById('newSwatchColor');if(!inp)return;
-  var color=inp.value;
-  if(_swatches.indexOf(color)>-1){showToast('Already in palette');return;}
-  _swatches.push(color);_saveSwatches();_renderSwatches();showToast('🎨 Added '+color);
+  var inp = document.getElementById('newSwatchColor'); if(!inp) return;
+  var c = inp.value;
+  if(_swatches.indexOf(c) > -1){ showToast('Already in palette'); return; }
+  _swatches.push(c); _saveSwatches(); _renderSwatches(); showToast('🎨 Added '+c);
 }
-function _saveSwatches(){
-  try{localStorage.setItem('a2g-sw',JSON.stringify(_swatches));}catch(e){}
-}
+function _saveSwatches(){ try{ localStorage.setItem('a2g-sw',JSON.stringify(_swatches)); }catch(e){} }
 
-/* ══════════════════════════════════════
+/* ══════════════════════════════════════════════
    MOBILE DRAWER SYSTEM
-   Key principle:
-   - Panels z-index:600 > Overlay z-index:499
-   - Taps INSIDE panels never reach overlay
-   - Taps OUTSIDE panels (on overlay) close drawers
-══════════════════════════════════════ */
+   
+   Z-INDEX HIERARCHY:
+   mobileBar / mobileToolbar : 1000  (always on top)
+   leftPanel / propPanel     : 800   (panels)
+   drawerOverlay             : 700   (behind panels)
+   canvasArea                : 1     (bottom)
+   
+   Because panels(800) > overlay(700), taps inside
+   a panel are handled by the panel, NOT the overlay.
+   
+   Additionally, in init() we call stopPropagation()
+   on panel touchstart/click as double insurance.
+══════════════════════════════════════════════ */
+
 function mobileOpenDrawer(tab){
-  if(window.innerWidth>=768){setLpTab(tab);return;}
-  var lp=document.getElementById('leftPanel');
-  var ov=document.getElementById('drawerOverlay');
-  var pp=document.getElementById('propPanel');
+  if(window.innerWidth >= 768){ setLpTab(tab); return; }
+
   setLpTab(tab);
-  var isOpen=lp.classList.contains('open');
-  var isSame=(window._currentMobileTab===tab);
-  /* Toggle off same tab */
-  if(isOpen&&isSame){
+
+  var lp = _lp(), pp = _pp(), ov = _ov();
+  var isOpen = lp.classList.contains('open');
+  var isSame = (window._mTab === tab);
+
+  /* Toggle: same tab → close */
+  if(isOpen && isSame){
     lp.classList.remove('open');
-    if(!pp.classList.contains('open'))ov.classList.remove('open');
-    window._currentMobileTab=null;
-    _clearMobileBtns();
+    if(!pp.classList.contains('open')) ov.classList.remove('open');
+    window._mTab = null;
+    _clearMtBtns();
     return;
   }
+
   /* Close props if open */
   if(pp.classList.contains('open')){
     pp.classList.remove('open');
-    document.getElementById('mt-props').classList.remove('active');
+    var pb = document.getElementById('mt-props');
+    if(pb) pb.classList.remove('active');
   }
+
   lp.classList.add('open');
   ov.classList.add('open');
-  window._currentMobileTab=tab;
-  _clearMobileBtns();
-  document.getElementById('mt-'+tab).classList.add('active');
+  window._mTab = tab;
+  _clearMtBtns();
+  var tb = document.getElementById('mt-'+tab);
+  if(tb) tb.classList.add('active');
 }
 
 function mobileToggleProps(){
-  var pp=document.getElementById('propPanel');
-  var ov=document.getElementById('drawerOverlay');
-  var lp=document.getElementById('leftPanel');
-  var btn=document.getElementById('mt-props');
+  var pp = _pp(), lp = _lp(), ov = _ov();
+  var btn = document.getElementById('mt-props');
+
+  /* Already open → close */
   if(pp.classList.contains('open')){
     pp.classList.remove('open');
-    if(!lp.classList.contains('open'))ov.classList.remove('open');
-    btn.classList.remove('active');
+    if(!lp.classList.contains('open')) ov.classList.remove('open');
+    if(btn) btn.classList.remove('active');
     return;
   }
-  if(!selElId){showToast('⚠️ Select an element first');return;}
-  /* Close left panel */
+
+  /* Need a selected element */
+  if(!selElId){
+    showToast('⚠️ Tap an element on the canvas first');
+    return;
+  }
+
+  /* Close left panel if open */
   if(lp.classList.contains('open')){
     lp.classList.remove('open');
-    window._currentMobileTab=null;
-    _clearMobileBtns();
+    window._mTab = null;
+    _clearMtBtns();
   }
+
+  /* Build and show */
   buildPropPanel(selElId);
   pp.classList.add('open');
   ov.classList.add('open');
-  btn.classList.add('active');
+  if(btn) btn.classList.add('active');
 }
 
+/* Called by overlay tap — closes everything */
 function closeMobileDrawers(){
-  /* Called when tapping overlay — closes everything */
-  document.getElementById('leftPanel').classList.remove('open');
-  document.getElementById('propPanel').classList.remove('open');
-  document.getElementById('drawerOverlay').classList.remove('open');
-  window._currentMobileTab=null;
-  _clearMobileBtns();
+  _lp().classList.remove('open');
+  _pp().classList.remove('open');
+  _ov().classList.remove('open');
+  window._mTab = null;
+  _clearMtBtns();
 }
 
 function closePropPanel(){
-  if(window.innerWidth<768){
-    var pp=document.getElementById('propPanel');
-    var ov=document.getElementById('drawerOverlay');
-    var lp=document.getElementById('leftPanel');
-    var btn=document.getElementById('mt-props');
+  if(window.innerWidth < 768){
+    var pp = _pp(), lp = _lp(), ov = _ov();
+    var btn = document.getElementById('mt-props');
     pp.classList.remove('open');
-    if(!lp.classList.contains('open'))ov.classList.remove('open');
-    btn.classList.remove('active');
-  }else{
+    if(!lp.classList.contains('open')) ov.classList.remove('open');
+    if(btn) btn.classList.remove('active');
+  } else {
     toggleProps();
   }
 }
 
-function _clearMobileBtns(){
+function _clearMtBtns(){
   ['slides','elements','settings','props'].forEach(function(t){
-    var b=document.getElementById('mt-'+t);if(b)b.classList.remove('active');
+    var b = document.getElementById('mt-'+t);
+    if(b) b.classList.remove('active');
   });
 }
 
-/* ── Desktop panel toggles ── */
+/* ─── Desktop toggles ─── */
 function togglePanels(){
-  var lp=document.getElementById('leftPanel');
-  var btn=document.getElementById('btn-panels');
-  if(!lp)return;
-  var hidden=lp.style.display==='none';
-  lp.style.display=hidden?'flex':'none';
-  if(btn)btn.classList.toggle('active',hidden);
+  var lp = _lp(), btn = document.getElementById('btn-panels');
+  var h = (lp.style.display === 'none');
+  lp.style.display = h ? 'flex' : 'none';
+  if(btn) btn.classList.toggle('active', h);
   zoomFit();
 }
 function toggleProps(){
-  var pp=document.getElementById('propPanel');
-  var btn=document.getElementById('btn-props');
-  if(!pp)return;
-  var hidden=pp.style.display==='none';
-  pp.style.display=hidden?'flex':'none';
-  if(btn)btn.classList.toggle('active',hidden);
+  var pp = _pp(), btn = document.getElementById('btn-props');
+  var h = (pp.style.display === 'none');
+  pp.style.display = h ? 'flex' : 'none';
+  if(btn) btn.classList.toggle('active', h);
   zoomFit();
 }
 function mobileToggleMode(){
-  setMode(mode==='edit'?'drag':'edit');
+  setMode(mode === 'edit' ? 'drag' : 'edit');
 }
