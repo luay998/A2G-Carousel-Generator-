@@ -28,16 +28,13 @@
   });
   window.addEventListener('orientationchange',function(){setTimeout(zoomFit,350);});
 
-  console.log('%cA2G v2.4 ✅','color:#7CFF7C;font-weight:bold;font-size:14px;');
+  console.log('%cA2G v2.5 ✅','color:#7CFF7C;font-weight:bold;font-size:14px;');
 })();
 
 function _resetMobileState(){
-  var lp=document.getElementById('leftPanel');
-  var pp=document.getElementById('propPanel');
-  var ov=document.getElementById('drawerOverlay');
-  if(lp)lp.classList.remove('open');
-  if(pp)pp.classList.remove('open');
-  if(ov)ov.classList.remove('open');
+  document.getElementById('leftPanel').classList.remove('open');
+  document.getElementById('propPanel').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
   window._currentMobileTab=null;
 }
 
@@ -70,13 +67,15 @@ function _renderSwatches(){
     sw.style.cssText='width:32px;height:32px;border-radius:7px;background:'+color+';cursor:pointer;border:2px solid rgba(255,255,255,.1);flex-shrink:0;transition:transform .15s;';
     sw.onmouseenter=function(){sw.style.transform='scale(1.15)';};
     sw.onmouseleave=function(){sw.style.transform='scale(1)';};
-    sw.onclick=function(){
+    sw.onclick=function(e){
+      e.stopPropagation();
       var ac=document.getElementById('c-ac');   if(ac)  ac.value=color;
       var acH=document.getElementById('c-acH'); if(acH) acH.value=color;
       updateColors();showToast('🎨 Accent → '+color);
     };
     sw.oncontextmenu=function(e){
-      e.preventDefault();_swatches.splice(i,1);_saveSwatches();_renderSwatches();showToast('🗑 Removed');
+      e.preventDefault();e.stopPropagation();
+      _swatches.splice(i,1);_saveSwatches();_renderSwatches();showToast('🗑 Removed');
     };
     c.appendChild(sw);
   });
@@ -93,67 +92,68 @@ function _saveSwatches(){
 
 /* ══════════════════════════════════════
    MOBILE DRAWER SYSTEM
+   Key principle:
+   - Panels z-index:600 > Overlay z-index:499
+   - Taps INSIDE panels never reach overlay
+   - Taps OUTSIDE panels (on overlay) close drawers
 ══════════════════════════════════════ */
 function mobileOpenDrawer(tab){
   if(window.innerWidth>=768){setLpTab(tab);return;}
   var lp=document.getElementById('leftPanel');
   var ov=document.getElementById('drawerOverlay');
   var pp=document.getElementById('propPanel');
-  if(!lp)return;
   setLpTab(tab);
   var isOpen=lp.classList.contains('open');
   var isSame=(window._currentMobileTab===tab);
-  if(isOpen&&isSame){_closeLp();return;}
+  /* Toggle off same tab */
+  if(isOpen&&isSame){
+    lp.classList.remove('open');
+    if(!pp.classList.contains('open'))ov.classList.remove('open');
+    window._currentMobileTab=null;
+    _clearMobileBtns();
+    return;
+  }
   /* Close props if open */
-  if(pp&&pp.classList.contains('open')){
+  if(pp.classList.contains('open')){
     pp.classList.remove('open');
-    var mpb=document.getElementById('mt-props');
-    if(mpb)mpb.classList.remove('active');
+    document.getElementById('mt-props').classList.remove('active');
   }
   lp.classList.add('open');
   ov.classList.add('open');
   window._currentMobileTab=tab;
   _clearMobileBtns();
-  var btn=document.getElementById('mt-'+tab);if(btn)btn.classList.add('active');
-}
-
-function _closeLp(){
-  var lp=document.getElementById('leftPanel');
-  var ov=document.getElementById('drawerOverlay');
-  var pp=document.getElementById('propPanel');
-  if(lp)lp.classList.remove('open');
-  if(!pp||!pp.classList.contains('open'))if(ov)ov.classList.remove('open');
-  window._currentMobileTab=null;
-  _clearMobileBtns();
+  document.getElementById('mt-'+tab).classList.add('active');
 }
 
 function mobileToggleProps(){
   var pp=document.getElementById('propPanel');
   var ov=document.getElementById('drawerOverlay');
-  var btn=document.getElementById('mt-props');
   var lp=document.getElementById('leftPanel');
-  if(!pp)return;
+  var btn=document.getElementById('mt-props');
   if(pp.classList.contains('open')){
     pp.classList.remove('open');
-    if(!lp||!lp.classList.contains('open'))if(ov)ov.classList.remove('open');
-    if(btn)btn.classList.remove('active');
+    if(!lp.classList.contains('open'))ov.classList.remove('open');
+    btn.classList.remove('active');
     return;
   }
   if(!selElId){showToast('⚠️ Select an element first');return;}
-  if(lp&&lp.classList.contains('open')){lp.classList.remove('open');window._currentMobileTab=null;_clearMobileBtns();}
+  /* Close left panel */
+  if(lp.classList.contains('open')){
+    lp.classList.remove('open');
+    window._currentMobileTab=null;
+    _clearMobileBtns();
+  }
   buildPropPanel(selElId);
   pp.classList.add('open');
-  if(ov)ov.classList.add('open');
-  if(btn)btn.classList.add('active');
+  ov.classList.add('open');
+  btn.classList.add('active');
 }
 
 function closeMobileDrawers(){
-  var lp=document.getElementById('leftPanel');
-  var pp=document.getElementById('propPanel');
-  var ov=document.getElementById('drawerOverlay');
-  if(lp)lp.classList.remove('open');
-  if(pp)pp.classList.remove('open');
-  if(ov)ov.classList.remove('open');
+  /* Called when tapping overlay — closes everything */
+  document.getElementById('leftPanel').classList.remove('open');
+  document.getElementById('propPanel').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
   window._currentMobileTab=null;
   _clearMobileBtns();
 }
@@ -162,11 +162,11 @@ function closePropPanel(){
   if(window.innerWidth<768){
     var pp=document.getElementById('propPanel');
     var ov=document.getElementById('drawerOverlay');
-    var btn=document.getElementById('mt-props');
     var lp=document.getElementById('leftPanel');
-    if(pp)pp.classList.remove('open');
-    if(!lp||!lp.classList.contains('open'))if(ov)ov.classList.remove('open');
-    if(btn)btn.classList.remove('active');
+    var btn=document.getElementById('mt-props');
+    pp.classList.remove('open');
+    if(!lp.classList.contains('open'))ov.classList.remove('open');
+    btn.classList.remove('active');
   }else{
     toggleProps();
   }
@@ -178,6 +178,7 @@ function _clearMobileBtns(){
   });
 }
 
+/* ── Desktop panel toggles ── */
 function togglePanels(){
   var lp=document.getElementById('leftPanel');
   var btn=document.getElementById('btn-panels');
@@ -197,6 +198,5 @@ function toggleProps(){
   zoomFit();
 }
 function mobileToggleMode(){
-  var newMode=mode==='edit'?'drag':'edit';
-  setMode(newMode);
+  setMode(mode==='edit'?'drag':'edit');
 }
