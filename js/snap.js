@@ -1,6 +1,3 @@
-/* ══════════════════════════════════════
-   SNAP.JS
-══════════════════════════════════════ */
 var SNAP_SIZE = 10;
 
 function _snap(val) {
@@ -10,9 +7,15 @@ function _snap(val) {
 
 function toggleSnap() {
   snapEnabled = !snapEnabled;
-  var btn  = document.getElementById('m-snap');
-  var mbtn = document.getElementById('mt-snap');
-  if (btn)  btn.classList.toggle('active', snapEnabled);
-  if (mbtn) mbtn.classList.toggle('active', snapEnabled);
+  var btn = document.getElementById('m-snap');
+  if (btn) btn.classList.toggle('active', snapEnabled);
   showToast(snapEnabled ? '🧲 Snap ON' : '🧲 Snap OFF');
+}
+
+function toggleGrid() {
+  showGrid = !showGrid;
+  var btn = document.getElementById('m-grid');
+  if (btn) btn.classList.toggle('active', showGrid);
+  renderActiveSlide();
+  showToast(showGrid ? '⊞ Grid ON' : '⊞ Grid OFF');
 }
