@@ -67,3 +67,85 @@ Organized in 8 categories with **live search**:
 - Save full project to a `.json` file
 - Load project from file to continue editing
 - Undo / Redo history (up to 50 steps)
+
+-## 🚀 Getting Started
+
+### 1. Clone the repo
+```bash
+git clone https://github.com/YOUR_USERNAME/a2g-carousel-generator.git
+cd a2g-carousel-generator
+---------------------------------------------------------------------------.
+
+2. Open in browser
+Just double-click index.html — or serve locally:
+
+📁 File Structure
+A2G/
+├── index.html              ← Main app (all CSS embedded)
+├── js/
+│   ├── state.js            ← Global variables & constants
+│   ├── history.js          ← Undo / Redo engine
+│   ├── background.js       ← BG patterns, logo/BG upload, color controls
+│   ├── elements.js         ← 60+ element catalogue, palette, element table
+│   ├── render.js           ← Canvas DOM renderer (all element builders)
+│   ├── drag.js             ← Drag-to-move + 8-point resize
+│   ├── snap.js             ← Snap-to-grid logic
+│   ├── align.js            ← Alignment helpers
+│   ├── properties.js       ← Property panel (edit element props)
+│   ├── slides.js           ← Slide CRUD, tab bar, panel tab switcher
+│   ├── context_menu.js     ← Right-click context menu
+│   ├── keyboard.js         ← Keyboard shortcuts
+│   ├── save_load.js        ← JSON project save/load
+│   ├── zoom.js             ← Canvas zoom + fit
+│   ├── export.js           ← PNG/JPG/WebP export via Canvas API
+│   └── main.js             ← App init, file input wiring, brand swatches
+
+
+--------------------------------------------------------------------------------
+
+⌨️ Keyboard Shortcuts
+
+| Shortcut        | Action                  |
+| --------------- | ----------------------- |
+| E               | Switch to Edit mode     |
+| M               | Switch to Move mode     |
+| G               | Toggle grid             |
+| N               | Toggle snap             |
+| 0               | Fit canvas to screen    |
+| + / -           | Zoom in / out           |
+| Del / Backspace | Delete selected element |
+| Arrow keys      | Nudge element 1px       |
+| Shift + Arrow   | Nudge element 10px      |
+| Ctrl + Z        | Undo                    |
+| Ctrl + Y        | Redo                    |
+| Ctrl + C        | Copy element            |
+| Ctrl + V        | Paste element           |
+| Ctrl + D        | Duplicate element       |
+| Ctrl + S        | Save project            |
+
+
+-------------------------------------------------
+
+
+| Layer        | Technology                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------------ |
+| Language     | Vanilla JavaScript (ES5 compatible)                                                              |
+| Rendering    | HTML DOM + CSS                                                                                   |
+| Export       | HTML5 Canvas API (toBlob)                                                                        |
+| Fonts        | Google Fonts (Poppins, Inter, Montserrat, Oswald, Raleway, Bebas Neue, Roboto, Playfair Display) |
+| Storage      | FileReader API (uploads), Blob URLs (export), localStorage (swatches)                            |
+| Dependencies | None — zero npm packages, zero frameworks                                                        |
+-------------------------------------------------------------
+
+| Layer        | Technology                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------------ |
+| Language     | Vanilla JavaScript (ES5 compatible)                                                              |
+| Rendering    | HTML DOM + CSS                                                                                   |
+| Export       | HTML5 Canvas API (toBlob)                                                                        |
+| Fonts        | Google Fonts (Poppins, Inter, Montserrat, Oswald, Raleway, Bebas Neue, Roboto, Playfair Display) |
+| Storage      | FileReader API (uploads), Blob URLs (export), localStorage (swatches)                            |
+| Dependencies | None — zero npm packages, zero frameworks                                                        |
+
+--------------------------------------------------------------------
+
+
