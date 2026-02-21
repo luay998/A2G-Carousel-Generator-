@@ -1,0 +1,29 @@
+/* ══ CANVAS AREA ══ */
+#canvasArea {
+  flex: 1;
+  background: #2a3a2a;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 30px;
+}
+#canvasArea::-webkit-scrollbar { width: 6px; height: 6px; }
+#canvasArea::-webkit-scrollbar-thumb { background: rgba(124,255,124,.2); border-radius: 3px; }
+
+.slide-canvas {
+  width: 540px;
+  height: 540px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 8px 40px rgba(0,0,0,.7);
+}
+
+.slide-grid-overlay {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 50;
+}
